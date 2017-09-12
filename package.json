@@ -1,0 +1,50 @@
+{
+  "name": "wct-bstack",
+  "version": "0.1.0",
+  "description": "WCT plugin that enables support for sauce browsers via Browserstack",
+  "keywords": [
+    "wct",
+    "web-component-tester",
+    "plugin"
+  ],
+  "homepage": "https://github.com/Polymer/wct-sauce",
+  "bugs": "https://github.com/Polymer/wct-bstack/issues",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/misttechnologies/wct-bstack.git"
+  },
+  "scripts": {
+    "postinstall": "node scripts/postinstall.js",
+    "test": "mocha"
+  },
+  "main": "lib/plugin.js",
+  "wct-plugin": {
+    "cli-options": {
+      "browsers": {
+        "help": "Remote Browserstack browsers to run tests on, or 'default'.",
+        "full": "bstack",
+        "metavar": "NAME",
+        "abbr": "s",
+        "list": true
+      },
+      "username": {
+        "help": "Browserstack username.",
+        "full": "bstack-username"
+      },
+      "accessKey": {
+        "help": "Browserstack access key.",
+        "full": "bstack-access-key"
+      }
+    }
+  },
+  "dependencies": {
+    "lodash": "^3.0.1",
+    "cleankill": "^1.0.0",
+    "uuid": "^2.0.1"
+  },
+  "devDependencies": {
+    "chai": "^3.3.0",
+    "mocha": "^2.2.4"
+  }
+}
