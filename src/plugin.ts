@@ -2,15 +2,17 @@
  * @license
  * Copyright (c) 2017 Mist Technologies, Inc. All rights reserved.
  */
-import * as browsers from './browsers';
-import * as wd from 'wd';
-import * as wct from 'wct';
-import * as promisify from 'promisify-node';
+import * as browsers    from './browsers';
+import * as wd          from 'wd';
+import * as wct         from 'wct';
+import * as promisify   from 'promisify-node';
+import * as request     from 'request';
+import * as uuid        from 'uuid';
 
 interface PluginOptions {
-  browsers: string[];
-  username: string;
-  accessKey: string;
+  browsers:   string[];
+  username:   string;
+  accessKey:  string;
 }
 
 /** WCT plugin that enables support for local browsers via Selenium. */
@@ -45,10 +47,10 @@ const plugin: wct.PluginInterface = (
     // Note that we **do not** append the browsers to `activeBrowsers`
     // until we've got a port chosen for the Selenium server.
     const expanded = await browsers.expand(names);
-
     wct.emit(
         'log:debug',
-        'Expanded local browsers:', names, 'into capabilities:', expanded);
+        'Expanded browsers:', names, 'into capabilities:', expanded);
+
     eachCapabilities = <wct.BrowserDef[]>expanded;
     // We are careful to append these to the configuration object, even though
     // we don't know the selenium port yet. This allows WCT to give a useful
@@ -63,7 +65,7 @@ const plugin: wct.PluginInterface = (
     if (!eachCapabilities.length) {
       return;
     }
-    updatePort(eachCapabilities);
+    updatePort(eachCapabilities, pluginOptions);
   };
   wct.hook('prepare', function(done: (err?: any) => void) {
     onPrepare().then(() => done(), (err) => done(err));
@@ -84,15 +86,44 @@ const plugin: wct.PluginInterface = (
       }
     });
   });
+
+  const updateStatus = (
+        def: wct.BrowserDef, error: any, stats: wct.Stats, sessionId: string,
+        browser: any /* TODO(rictic): what is browser here? */): void => {
+    if (!browser || eachCapabilities.length == 0 || !sessionId) return;
+
+    var payload = {
+      status: (stats.status === 'complete' && stats.failing === 0) ? "passed" : "failed",
+      reason: error
+    };
+    wct.emit('log:debug', 'Updating browserstack job', sessionId, payload);
+
+    // Send the pass/fail info to sauce-labs if we are testing remotely.
+    var username  = wct.options.plugins["bstack"].username;
+    var accessKey = wct.options.plugins["bstack"].accessKey;
+    request.put({
+      url:  'https://username:accessKey@www.browserstack.com/automate/sessions/' + encodeURIComponent(sessionId) + '.json',
+      json: true,
+      body: payload,
+    });
+  };
+  wct.on('browser-end',  updateStatus);
+  wct.on('browser-fail', updateStatus);
 };
 
 // Utility
 
-function updatePort(capabilities: wct.BrowserDef[]) {
+function updatePort(capabilities: wct.BrowserDef[], options: PluginOptions) {
+  let id: number = 1;
   capabilities.forEach(function(capabilities) {
+    capabilities.id = id++;
+    capabilities.sessionId = uuid.v4();
+    capabilities['browserstack.local'] = true;
     capabilities.url = {
       hostname: 'hub-cloud.browserstack.com/wd/hub',
-      port:     80,
+      port: 80,
+      username: <string>(process.env.BROWSER_STACK_USERNAME || options.username),
+      accesskey: <string>(process.env.BROWSER_STACK_ACCESS_KEY || options.accessKey)
     };
   });
 }

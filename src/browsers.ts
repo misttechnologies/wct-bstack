@@ -2,22 +2,8 @@
  * @license
  * Copyright (c) 2017 Mist Technologies, Inc. All rights reserved.
  */
-import * as launchpad from 'launchpad';
 import * as wd from 'wd';
 import * as promisify from 'promisify-node';
-
-type LaunchpadToWebdriver = (browser: launchpad.Browser) => wd.Capabilities;
-const LAUNCHPAD_TO_SELENIUM: {[browser: string]: LaunchpadToWebdriver} = {
-  chrome:  chrome,
-  canary:  chrome,
-  firefox: firefox,
-  aurora:  firefox,
-  ie:      internetExplorer,
-  safari:  safari,
-  // Temporarily disabling phantom until we can disable it on travis.
-  // See: https://github.com/Polymer/wct-local/issues/38
-  // phantom: phantom,
-};
 
 export function normalize(
       browsers: (string | {browserName: string})[]): string[] {
@@ -36,57 +22,24 @@ export function normalize(
  * If `names` is empty, or contains `all`, all installed browsers will be used.
  */
 export async function expand(names: string[]): Promise<wd.Capabilities[]> {
-  if (names.indexOf('all') !== -1) {
-    names = [];
+  const map: { [browserName: string]: wd.Capabilities; } = {};
+  for (let browser of supported()) {
+    map[browser.browserName] = browser;
+  }
+  if (names.indexOf('all') !== -1 || names.indexOf('default') !== -1) {
+    names = Object.keys(map);
   }
 
-  const unsupported = difference(names, supported());
+  const unsupported = difference(names, Object.keys(map));
   if (unsupported.length > 0) {
     throw new Error(
         `The following browsers are unsupported: ${unsupported.join(', ')}. ` +
-        `(All supported browsers: ${supported().join(', ')})`
+        `(All supported browsers: ${Object.keys(map).join(', ')})`
     );
   }
 
-  const installedByName = await detect();
-  const installed = Object.keys(installedByName);
-  // Opting to use everything?
-  if (names.length === 0) {
-    names = installed;
-  }
-
-  const missing = difference(names, installed);
-  if (missing.length > 0) {
-    throw new Error(
-        `The following browsers were not found: ${missing.join(', ')}. ` +
-        `(All installed browsers found: ${installed.join(', ')})`
-    );
-  }
-
-  return names.map(function(n) { return installedByName[n]; });
+  return names.map(function(n) { return map[n]; });
 }
-
-/**
- * Detects any locally installed browsers that we support.
- *
- * Exported and declared as `let` variables for testabilty in wct.
- */
-export let detect = async function detect(): Promise<{[browser: string]: wd.Capabilities}> {
-  const launcher = await promisify(launchpad.local)();
-  const browsers = await promisify(launcher.browsers)();
-
-  const results: {[browser: string]: wd.Capabilities} = {};
-  for (const browser of browsers) {
-    if (!LAUNCHPAD_TO_SELENIUM[browser.name]) continue;
-    const converter = LAUNCHPAD_TO_SELENIUM[browser.name];
-    const convertedBrowser = converter(browser);
-    if (convertedBrowser) {
-      results[browser.name] = convertedBrowser;
-    }
-  }
-
-  return results;
-};
 
 /**
  * Exported and declared as `let` variables for testabilty in wct.
@@ -94,81 +47,9 @@ export let detect = async function detect(): Promise<{[browser: string]: wd.Capa
  * @return A list of local browser names that are supported by
  *     the current environment.
  */
-export let supported = function supported(): string[] {
-  return Object.keys(launchpad.local.platform).filter(
-      (key) => key in LAUNCHPAD_TO_SELENIUM);
+export let supported = function supported(): wd.Capabilities[] {
+  return require('./../default-bstack-browsers.json');
 };
-
-// Launchpad -> Selenium
-
-/**
- * @param browser A launchpad browser definition.
- * @return A selenium capabilities object.
- */
-function chrome(browser: launchpad.Browser): wd.Capabilities {
-  return {
-    'browserName': 'chrome',
-    'version':     browser.version.match(/\d+/)[0],
-    'chromeOptions': {
-      'binary': browser.binPath,
-      'args': ['start-maximized']
-    },
-  };
-}
-
-/**
- * @param browser A launchpad browser definition.
- * @return A selenium capabilities object.
- */
-function firefox(browser: launchpad.Browser): wd.Capabilities {
-  const version = parseInt(browser.version.match(/\d+/)[0], 10);
-  const marionette = version >= 47;
-  return {
-    'browserName': 'firefox',
-    'version': `${version}`,
-    'firefox_binary': browser.binPath,
-    marionette
-  };
-}
-
-/**
- * @param browser A launchpad browser definition.
- * @return A selenium capabilities object.
- */
-function safari(browser: launchpad.Browser): wd.Capabilities {
-  // SafariDriver doesn't appear to support custom binary paths. Does Safari?
-  return {
-    'browserName': 'safari',
-    'version':     browser.version,
-    // TODO(nevir): TEMPORARY. https://github.com/Polymer/web-component-tester/issues/51
-    'safari.options': {
-      'skipExtensionInstallation': true,
-    },
-  };
-}
-
-/**
- * @param browser A launchpad browser definition.
- * @return A selenium capabilities object.
- */
-function phantom(browser: launchpad.Browser): wd.Capabilities {
-  return {
-    'browserName': 'phantomjs',
-    'version':     browser.version,
-    'phantomjs.binary.path': browser.binPath,
-  };
-}
-
-/**
- * @param browser A launchpad browser definition.
- * @return A selenium capabilities object.
- */
-function internetExplorer(browser: launchpad.Browser): wd.Capabilities {
-  return {
-    'browserName': 'internet explorer',
-    'version':     browser.version,
-  };
-}
 
 /** Filter out all elements from toRemove from source. */
 function difference<T>(source: T[], toRemove: T[]): T[] {
