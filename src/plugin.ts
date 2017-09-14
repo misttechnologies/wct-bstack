@@ -102,8 +102,8 @@ const plugin: wct.PluginInterface = (
     wct.emit('log:debug', 'Updating browserstack job', sessionId, payload);
 
     // Send the pass/fail info to sauce-labs if we are testing remotely.
-    var username  = wct.options.plugins["bstack"].username;
-    var accessKey = wct.options.plugins["bstack"].accessKey;
+    var username  = <string>(process.env.BROWSER_STACK_USERNAME   || pluginOptions.username);
+    var accessKey = <string>(process.env.BROWSER_STACK_ACCESS_KEY || pluginOptions.accessKey);
     request.put({
       url:  'https://' + username + ':' + accessKey +
       '@www.browserstack.com/automate/sessions/' + encodeURIComponent(sessionId) + '.json',
