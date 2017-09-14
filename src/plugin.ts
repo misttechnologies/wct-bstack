@@ -10,9 +10,11 @@ import * as request     from 'request';
 import * as uuid        from 'uuid';
 
 interface PluginOptions {
+  defaults:   any;
   browsers:   string[];
   username:   string;
   accessKey:  string;
+  debug:      boolean;
 }
 
 /** WCT plugin that enables support for local browsers via Selenium. */
@@ -65,7 +67,8 @@ const plugin: wct.PluginInterface = (
     if (!eachCapabilities.length) {
       return;
     }
-    updatePort(eachCapabilities, pluginOptions);
+    wct.emit('log:debug', pluginOptions);
+    updateCapabilities(eachCapabilities, pluginOptions);
   };
   wct.hook('prepare', function(done: (err?: any) => void) {
     onPrepare().then(() => done(), (err) => done(err));
@@ -102,7 +105,8 @@ const plugin: wct.PluginInterface = (
     var username  = wct.options.plugins["bstack"].username;
     var accessKey = wct.options.plugins["bstack"].accessKey;
     request.put({
-      url:  'https://username:accessKey@www.browserstack.com/automate/sessions/' + encodeURIComponent(sessionId) + '.json',
+      url:  'https://' + username + ':' + accessKey +
+      '@www.browserstack.com/automate/sessions/' + encodeURIComponent(sessionId) + '.json',
       json: true,
       body: payload,
     });
@@ -113,17 +117,24 @@ const plugin: wct.PluginInterface = (
 
 // Utility
 
-function updatePort(capabilities: wct.BrowserDef[], options: PluginOptions) {
+function updateCapabilities(capabilities: wct.BrowserDef[], options: PluginOptions, localIdentifier?: string) {
   let id: number = 1;
   capabilities.forEach(function(capabilities) {
     capabilities.id = id++;
-    capabilities.sessionId = uuid.v4();
-    capabilities['browserstack.local'] = true;
+    capabilities['browserstack.local'] = options.defaults.local || true;
+    if (localIdentifier || options.defaults.localIdentifier) {
+      capabilities['browserstack.localIdentifier'] = localIdentifier || options.defaults.localIdentifier;
+    }
+    capabilities['browserstack.video'] = options.defaults.video || false;
+    capabilities['browserstack.debug'] = options.defaults.debug || false;
+    capabilities['browserstack.networkLogs'] = options.defaults.networkLogs || false;
+    capabilities.project = options.defaults.project || "";
+    capabilities.build = options.defaults.build || "";
     capabilities.url = {
-      hostname: 'hub-cloud.browserstack.com/wd/hub',
+      hostname: 'hub-cloud.browserstack.com',
       port: 80,
-      username: <string>(process.env.BROWSER_STACK_USERNAME || options.username),
-      accesskey: <string>(process.env.BROWSER_STACK_ACCESS_KEY || options.accessKey)
+      user: <string>(process.env.BROWSER_STACK_USERNAME   || options.username),
+      pwd:  <string>(process.env.BROWSER_STACK_ACCESS_KEY || options.accessKey)
     };
   });
 }

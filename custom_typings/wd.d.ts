@@ -23,6 +23,14 @@ declare module 'wd' {
     version: string;
     /** A key specifying which platform the browser should be running on. */
     platform?: 'WINDOWS'|'XP'|'VISTA'|'MAC'|'LINUX'|'UNIX'|'ANDROID'|'ANY';
+    device?: string;
+
+    os?: 'Windows'|'OS X';
+    os_version?: string;
+    resolution?: string;
+
+    build?: string;
+    project?: string;
 
     /** Whether the session can interact with modal popups,
      *  such as window.alert and window.confirm. */
@@ -58,6 +66,8 @@ declare module 'wd' {
       string |
       {hostname: string, port?: number,
        auth?: string, path?: string, } |
+      {hostname: string, port?: number,
+       user?: string, pwd?: string, } |
       {host: string, port?: number,
        username?: string, accesskey?: string, path?: string, };
 

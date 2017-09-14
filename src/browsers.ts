@@ -11,7 +11,7 @@ export function normalize(
     if (typeof browser === 'string') {
       return browser;
     }
-    return browser.browserName;
+    return browser.browserName.toLowerCase();
   });
 }
 
@@ -24,7 +24,7 @@ export function normalize(
 export async function expand(names: string[]): Promise<wd.Capabilities[]> {
   const map: { [browserName: string]: wd.Capabilities; } = {};
   for (let browser of supported()) {
-    map[browser.browserName] = browser;
+    map[browser.browserName.toLowerCase()] = browser;
   }
   if (names.indexOf('all') !== -1 || names.indexOf('default') !== -1) {
     names = Object.keys(map);

@@ -37,6 +37,10 @@
       "accessKey": {
         "help": "Browserstack access key.",
         "full": "bstack-access-key"
+      },
+      "debug": {
+        "help": "Debug?",
+        "full": "debug"
       }
     }
   },
