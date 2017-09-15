@@ -4,23 +4,18 @@
  */
 import * as browsers    from './browsers';
 import * as local       from './local';
+import * as _           from 'lodash';
 import * as wct         from 'wct';
 import * as promisify   from 'promisify-node';
 import * as request     from 'request';
 import * as uuid        from 'uuid';
 
 interface PluginOptions {
-  defaults:         any;
   browsers:         string[];
   username?:        string;
   accessKey?:       string;
-  debug?:           boolean;
-  video?:           boolean;
-  networkLogs?:     boolean;
-  local?:           boolean;
-  localIdentifier?: string;
-  project?:         string;
-  build?:           string;
+  defaults?:        any; // default capabilities
+  capabilities?:     any;
 }
 
 /** WCT plugin that enables support for local browsers via Selenium. */
@@ -80,9 +75,10 @@ const plugin: wct.PluginInterface = (
       wct.emitHook('prepare:browserstack-local-tunnel', (e) => e ? reject(e) : resolve());
     });
 
+    const id = pluginOptions.capabilities['browserstack.localIdentifier'];
     wct.emit('local:debug',
-      `starting BrowserStackLocal tunnel with identifier = ${pluginOptions.localIdentifier}...`);
-    await local.startTunnel(wct, pluginOptions.localIdentifier, pluginOptions.accessKey);
+      `starting BrowserStackLocal tunnel with identifier = ${id}...`);
+    await local.startTunnel(wct, id, pluginOptions.accessKey);
     updateCapabilities(eachCapabilities, pluginOptions);
   };
   wct.hook('prepare', function(done: (err?: any) => void) {
@@ -126,44 +122,59 @@ const plugin: wct.PluginInterface = (
 };
 
 // Utility
+
 function normalizeOptions(pluginOptions: PluginOptions) {
   if (process.env.BROWSER_STACK_USERNAME)
     pluginOptions.username = process.env.BROWSER_STACK_USERNAME;
   if (process.env.BROWSER_STACK_ACCESS_KEY)
     pluginOptions.accessKey = process.env.BROWSER_STACK_ACCESS_KEY;
-  if (!pluginOptions.local)
-    pluginOptions.local = pluginOptions.defaults.local || true;
-  if (!pluginOptions.localIdentifier)
-    pluginOptions.localIdentifier = pluginOptions.defaults.localIdentifier || uuid.v4();
-  if (!pluginOptions.video)
-    pluginOptions.video = pluginOptions.defaults.video || false;
-  if (!pluginOptions.debug)
-    pluginOptions.debug = pluginOptions.defaults.debug || false;
-  if (!pluginOptions.networkLogs)
-    pluginOptions.networkLogs = pluginOptions.defaults.networkLogs || false;
-  if (!pluginOptions.project)
-    pluginOptions.project = pluginOptions.defaults.project || "";
-  if (!pluginOptions.build)
-    pluginOptions.build = pluginOptions.defaults.build || "untitled build";
+
+  // required dicts / keys
+  if (!("defaults" in pluginOptions)) {
+    pluginOptions["defaults"] = {
+      "browserstack.local": true
+    };
+  }
+  if (!("browserstack.local" in pluginOptions.defaults)) {
+    pluginOptions.defaults["browserstack.local"] = true;
+  }
+
+  // make if absent
+  if (!("capabilities" in pluginOptions)) {
+    pluginOptions["capabilities"] = {};
+  }
+
+  if ("capabilities" in pluginOptions && "browserstack" in pluginOptions.capabilities) {
+    // flatten hierarchical keys for browserstack spec
+    for (let key in pluginOptions.capabilities.browserstack) {
+      pluginOptions.capabilities[`browserstack.${key}`] = pluginOptions.capabilities.browserstack[key];
+      delete pluginOptions.capabilities.browserstack[key];
+    }
+    delete pluginOptions.capabilities['browserstack'];
+  }
+
+  // merge, with respects for given concrete values
+  _.defaults(pluginOptions.capabilities, pluginOptions.defaults);
+
+  // make identifier if absent
+  if (!('browserstack.localIdentifier' in pluginOptions.capabilities)) {
+    pluginOptions.capabilities['browserstack.localIdentifier'] = uuid.v4();
+  }
 }
 
 function updateCapabilities(capabilities: wct.BrowserDef[], options: PluginOptions) {
   let id: number = 1;
   capabilities.forEach(function(capabilities) {
     capabilities.id = id++;
-    capabilities['browserstack.local']            = options.local;
-    capabilities['browserstack.localIdentifier']  = options.localIdentifier;
-    capabilities['browserstack.video']            = options.video;
-    capabilities['browserstack.debug']            = options.debug;
-    capabilities['browserstack.networkLogs']      = options.networkLogs;
-    capabilities['project']                       = options.project || "";
-    capabilities['build']                         = options.defaults.build || "";
     capabilities.url = {
       hostname: 'hub-cloud.browserstack.com',
       port: 80,
       user: options.username,
       pwd:  options.accessKey
     };
+    for (let key in options.capabilities) {
+      if (!(key in capabilities)) capabilities[key] = options.capabilities[key];
+    }
   });
 }
 

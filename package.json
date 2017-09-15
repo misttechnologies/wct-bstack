@@ -26,22 +26,58 @@
     "cli-options": {
       "browsers": {
         "help": "Remote Browserstack browsers to run tests on, or 'default'.",
-        "full": "bstack",
+        "full": "browserstack",
         "metavar": "NAME",
         "abbr": "b",
         "list": true
       },
       "username": {
         "help": "Browserstack username.",
-        "full": "bstack-username"
+        "full": "browserstack-username"
       },
       "accessKey": {
         "help": "Browserstack access key.",
-        "full": "bstack-access-key"
+        "full": "browserstack-access-key"
       },
-      "debug": {
-        "help": "Debug?",
+      "capabilities.project": {
+        "help": "A name for a logical group of builds.",
+        "full": "project"
+      },
+      "capabilities.buildNumber": {
+        "help": "A name for a logical group of tests.",
+        "full": "build-number"
+      },
+      "capabilities.name": {
+        "help": "An identifier for the test run.",
+        "full": "name"
+      },
+      "capabilities.browserstack.local": {
+        "help": "Switch for local testing.",
+        "full": "local"
+      },
+      "capabilities.browserstack.localIdentifier": {
+        "help": "BrowserstackLocal session identifier.",
+        "full": "local-identifier"
+      },
+      "capabilities.browserstack.debug": {
+        "help": "Switch for generating screenshots at various steps in your test.",
         "full": "debug"
+      },
+      "capabilities.browserstack.console": {
+        "help": "Switch for capturing browser console logs at various steps in your test.",
+        "full": "console"
+      },
+      "capabilities.browserstack.networkLogs": {
+        "help": "Switch for capturing network logs for your test.",
+        "full": "network-logs"
+      },
+      "capabilities.browserstack.video": {
+        "help": "Switch for enabling video recording during your test.",
+        "full": "video"
+      },
+      "capabilities.browserstack.timezone": {
+        "help": "A custom timezone to configure tests to run on.",
+        "full": "timezone"
       }
     }
   },
@@ -50,10 +86,12 @@
   },
   "dependencies": {
     "@types/chalk": "^0.4.31",
+    "@types/lodash": "^4.14.74",
     "@types/node": "^6.0.31",
     "@types/request": "^2.0.3",
     "@types/uuid": "^3.4.2",
     "chalk": "^2.1.0",
+    "lodash": "^4.17.4",
     "promisify-node": "^0.4.0",
     "request": "^2.81.0",
     "unzip": "^0.1.11",
