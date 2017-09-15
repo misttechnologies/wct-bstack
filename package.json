@@ -17,6 +17,7 @@
   "main": "lib/plugin.js",
   "typings": "lib/plugin.d.ts",
   "scripts": {
+    "postinstall": "node scripts/postinstall.js",
     "build": "tsc",
     "prepublish": "tsc",
     "test": "mocha"
@@ -53,6 +54,7 @@
     "@types/uuid": "^3.4.2",
     "promisify-node": "^0.4.0",
     "request": "^2.81.0",
+    "unzip": "^0.1.11",
     "uuid": "^3.1.0"
   },
   "engines": {

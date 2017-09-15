@@ -1,0 +1,18 @@
+{
+  "darwin": {
+    "url": "https://www.browserstack.com/browserstack-local/BrowserStackLocal-darwin-x64.zip",
+    "filename": "BrowserStackLocal"
+  },
+  "linux-32": {
+    "url": "https://www.browserstack.com/browserstack-local/BrowserStackLocal-linux-ia32.zip",
+    "filename": "BrowserStackLocal"
+  },
+  "linux-64": {
+    "url": "https://www.browserstack.com/browserstack-local/BrowserStackLocal-linux-x64.zip",
+    "filename": "BrowserStackLocal"
+  },
+  "win32": {
+    "url": "https://www.browserstack.com/browserstack-local/BrowserStackLocal-win32.zip",
+    "filename": "BrowserStackLocal.exe"
+  }
+}
