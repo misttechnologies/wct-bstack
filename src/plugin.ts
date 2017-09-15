@@ -3,6 +3,7 @@
  * Copyright (c) 2017 Mist Technologies, Inc. All rights reserved.
  */
 import * as browsers    from './browsers';
+import * as local       from './local';
 import * as wct         from 'wct';
 import * as promisify   from 'promisify-node';
 import * as request     from 'request';
@@ -73,7 +74,15 @@ const plugin: wct.PluginInterface = (
     if (!eachCapabilities.length) {
       return;
     }
-    wct.emit('log:debug', pluginOptions);
+    // Let anyone know, and give them a chance to modify the options prior to
+    // booting up the BrowserStackLocal tunnel.
+    await new Promise((resolve, reject) => {
+      wct.emitHook('prepare:browserstack-local-tunnel', (e) => e ? reject(e) : resolve());
+    });
+
+    wct.emit('local:debug',
+      `starting BrowserStackLocal tunnel with identifier = ${pluginOptions.localIdentifier}...`);
+    await local.startTunnel(wct, pluginOptions.localIdentifier, pluginOptions.accessKey);
     updateCapabilities(eachCapabilities, pluginOptions);
   };
   wct.hook('prepare', function(done: (err?: any) => void) {

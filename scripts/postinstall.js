@@ -1,32 +1,14 @@
-const fs      = require('fs');
-const os      = require('os');
 const path    = require('path');
+const fs      = require('fs');
 const request = require('request');
 const unzip   = require('unzip');
-const refs = require('./../browserstacklocal-binaries.json');
+const binInfo = require('./bininfo');
 
-const platform = os.platform();
-let target = null;
-switch (os.platform()) {
-  case 'darwin':
-    target = refs['darwin'];
-    break;
-  case 'linux':
-    if (os.arch().endsWith('64')) {
-      target = refs['linux-64'];
-    } else {
-      target = refs['linux-32'];
-    }
-    break;
-  case 'win32':
-    target = refs['win32'];
-    break;
-}
-if (target === null) {
-    throw new Error('No matching BrowserStackLocal binary for your arch was found');
-    process.exit(-1);
-}
-
-var dest = path.resolve(__dirname, './../bin/');
-console.log(`Downloading BrowserStackLocal binary to ${dest}...`);
-request(target['url']).pipe(unzip.Extract({path: dest}));
+const target = binInfo();
+var dest = path.resolve(__dirname, './../bin');
+console.log(`Downloading BrowserStackLocal binary from ${target['url']} to ${dest}/${target['filename']} ...`);
+var extractor = request(target['url']).pipe(unzip.Extract({path: dest}));
+extractor.on('close', () => {
+  fs.chmodSync(`${dest}/${target['filename']}`, 0755);
+  console.log("Success.");
+});
