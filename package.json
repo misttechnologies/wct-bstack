@@ -18,10 +18,11 @@
   "main": "lib/plugin.js",
   "typings": "lib/plugin.d.ts",
   "scripts": {
-    "postinstall": "node scripts/postinstall.js",
     "build": "tsc",
+    "test": "mocha",
     "prepublish": "tsc",
-    "test": "mocha"
+    "install": "tsc",
+    "postinstall": "node scripts/postinstall.js"
   },
   "wct-plugin": {
     "cli-options": {
