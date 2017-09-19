@@ -5,7 +5,6 @@
  * The complete set of contributors may be found at https://github.com/misttechnologies/wct-bstack/graphs/contributors
  */
 import * as wd from 'wd';
-import * as promisify from 'promisify-node';
 
 export function expand(
       browsers: (string | wd.Capabilities)[]): wd.Capabilities[] {
