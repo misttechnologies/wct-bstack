@@ -1,3 +1,10 @@
+/**
+ * @license
+ * Copyright (c) 2017 Mist Technologies, Inc. All rights reserved.
+ * This code may only be used under the BSD style license found at https://github.com/misttechnologies/wct-bstack/blob/master/LICENSE
+ * The complete set of contributors may be found at https://github.com/misttechnologies/wct-bstack/graphs/contributors
+ */
+
 const os      = require('os');
 const refs = require('./../browserstacklocal-binaries.json');
 

@@ -1,10 +1,3 @@
-TODOs
-----------------------
-
-* Support - LICENSE matters?
-
-* Feature - queue for tests with multiple browsers
-
 Unreleased Changes
 ----------------------
 

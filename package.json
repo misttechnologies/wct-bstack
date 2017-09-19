@@ -1,11 +1,12 @@
 {
   "name": "wct-bstack",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "WCT plugin that enables support for Browserstack via Selenium WebDriver",
   "keywords": [
     "wct",
     "web-component-tester",
-    "plugin"
+    "plugin",
+    "browserstack"
   ],
   "homepage": "https://github.com/misttechnologies/wct-bstack",
   "bugs": "https://github.com/misttechnologies/wct-bstack/issues",
