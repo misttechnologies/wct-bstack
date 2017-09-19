@@ -30,9 +30,14 @@
     "os_version":       "10"
   },
   {
+    "browserName":      "Chrome",
+    "os":               "OS X",
+    "os_version":       "Sierra"
+  },
+  {
     "browserName":      "Firefox",
     "browser_version":  "56.0 beta",
-    "os":               "Windows",
-    "os_version":       "10"
+    "os":               "ANY",
+    "os_version":       "ANY"
   }
 ]

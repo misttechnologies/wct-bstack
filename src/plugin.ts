@@ -2,8 +2,8 @@
  * @license
  * Copyright (c) 2017 Mist Technologies, Inc. All rights reserved.
  */
-import * as browsers    from './browsers';
 import * as local       from './local';
+import * as browsers    from './browsers';
 import * as _           from 'lodash';
 import * as wct         from 'wct';
 import * as promisify   from 'promisify-node';
@@ -11,11 +11,11 @@ import * as request     from 'request';
 import * as uuid        from 'uuid';
 
 interface PluginOptions {
-  browsers:         string[];
+  browsers:         any[];
   username?:        string;
   accessKey?:       string;
   defaults?:        any; // default capabilities
-  capabilities?:     any;
+  capabilities?:    any;
 }
 
 /** WCT plugin that enables support for local browsers via Selenium. */
@@ -33,27 +33,22 @@ const plugin: wct.PluginInterface = (
   // browsers. We don't want the default behavior (run all local browsers) to
   // kick in if someone has specified browsers via another plugin.
   const onConfigure = async () => {
-    let names = browsers.normalize(pluginOptions.browsers);
-    if (names.length > 0) {
-      // We support comma separated browser identifiers for convenience.
-      names = names.join(',').split(',');
+    const activeBrowsers = wct.options.activeBrowsers;
+    if (activeBrowsers.length === 0 && pluginOptions.browsers.length === 0) {
+      pluginOptions.browsers = require('./../default-bstack-browsers.json');
     }
 
-    const activeBrowsers = wct.options.activeBrowsers;
-    if (activeBrowsers.length === 0 && names.length === 0) {
-      names = ['all'];
-    }
     // No browsers for you :(
-    if (names.length === 0) {
+    if (pluginOptions.browsers.length === 0) {
       return;
     }
 
     // Note that we **do not** append the browsers to `activeBrowsers`
     // until we've got a port chosen for the Selenium server.
-    const expanded = await browsers.expand(names);
+    const expanded = await browsers.expand(pluginOptions.browsers);
     wct.emit(
         'log:debug',
-        'Expanded browsers:', names, 'into capabilities:', expanded);
+        'Expanded browsers:', pluginOptions.browsers, 'into capabilities:', expanded);
 
     eachCapabilities = <wct.BrowserDef[]>expanded;
     // We are careful to append these to the configuration object, even though
@@ -96,12 +91,30 @@ const plugin: wct.PluginInterface = (
         wct.emit('log:debug', def.browserName + ' maximized');
       }
     });
+
+    // NOTE keepalive hack that prevents browserstack session from going timeout
+    browser._keepalive = setInterval(() => {
+      browser.title((err: any, title: string) => {
+        if (err) {
+          wct.emit('log:error', `${def.browserName} failed to get title; the browser may have crashed`);
+          //browser.quit(`${def.browserName} may have crashed`);
+        } else {
+          wct.emit('log:debug', `${def.browserName} is running and has ${title}`);
+        }
+      });
+    }, (def['testTimeout'] / 2) || 45 * 1000);
+    // do not let the keepalive hang node
+    browser._keepalive.unref();
   });
 
   const updateStatus = (
         def: wct.BrowserDef, error: any, stats: wct.Stats, sessionId: string,
         browser: any /* TODO(rictic): what is browser here? */): void => {
     if (!browser || eachCapabilities.length == 0 || !sessionId) return;
+
+    if (browser._keepalive) {
+      clearInterval(browser._keepalive);
+    }
 
     var payload = {
       status: (stats.status === 'complete' && stats.failing === 0 && !error) ? "passed" : "failed",

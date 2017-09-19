@@ -18,7 +18,7 @@ declare module 'wd' {
   }
   export interface Capabilities {
     /** The name of the browser being used */
-    browserName: 'android'|'chrome'|'firefox'|'htmlunit'|'internet explorer'|'iPhone'|'iPad'|'opera'|'safari'|'phantomjs';
+    browserName: ValidBrowserNames;
     /** The browser version, or the empty string if unknown. */
     version: string;
     /** A key specifying which platform the browser should be running on. */
@@ -70,6 +70,8 @@ declare module 'wd' {
        user?: string, pwd?: string, } |
       {host: string, port?: number,
        username?: string, accesskey?: string, path?: string, };
+
+  export type ValidBrowserNames = 'android'|'chrome'|'firefox'|'htmlunit'|'internet explorer'|'iPhone'|'iPad'|'opera'|'safari'|'phantomjs'|'any';
 
   export function remote(hostnameOrUrl: ValidHost): Browser;
 }
