@@ -86,13 +86,6 @@ const plugin: wct.PluginInterface = (
         def: wct.BrowserDef, data: {url: string}, stats: wct.Stats,
         browser: any /* TODO(rictic): what is browser here? */) => {
     if (!browser) return;
-    browser.maximize(function(err: any) {
-      if (err) {
-        wct.emit('log:error', def.browserName + ' failed to maximize');
-      } else {
-        wct.emit('log:debug', def.browserName + ' maximized');
-      }
-    });
 
     // NOTE keepalive hack that prevents browserstack session from going timeout
     browser._keepalive = setInterval(() => {
