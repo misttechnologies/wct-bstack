@@ -3,6 +3,11 @@ Unreleased Changes
 
 * No entry
 
+v0.2.6
+---------------------
+* Bugfix - Installation -
+  tsc should not run at installation
+
 v0.2.5
 ----------------------
 * Refactoring - Dependencies -

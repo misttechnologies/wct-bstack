@@ -21,7 +21,6 @@
     "build": "tsc",
     "test": "echo no test",
     "prepublish": "tsc",
-    "install": "tsc",
     "postinstall": "node scripts/postinstall.js"
   },
   "wct-plugin": {
