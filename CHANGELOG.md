@@ -3,6 +3,11 @@ Unreleased Changes
 
 * No entry
 
+v0.2.5
+----------------------
+* Refactoring - Dependencies -
+  typescript should be a `devDependencies`
+
 v0.2.4
 ----------------------
 
