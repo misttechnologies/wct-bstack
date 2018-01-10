@@ -45,12 +45,11 @@ export async function startTunnel(wct: wct.Context, identifier: string, key: str
     proc.stderr.on('data', onOutput);
 
     // Make sure that we interrupt the selenium server ASAP.
-    cleankill.onInterrupt(function(done) {
-      wct.emit(
-        'log:info',
+    cleankill.onInterrupt(() => new Promise((resolve, reject) => {
+      wct.emit('log:info',
         chalk.yellow('BrowserStackLocal tunnel will be destroyed now'));
       proc.kill();
-      done();
-    });
+      resolve();
+    }));
   });
 }
