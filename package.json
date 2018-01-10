@@ -1,6 +1,6 @@
 {
   "name": "wct-bstack",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "WCT plugin that enables support for Browserstack via Selenium WebDriver",
   "keywords": [
     "wct",
